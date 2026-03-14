@@ -1,0 +1,6 @@
+{
+  "framework": "react",
+  "paths": {
+    "workdir": "./apps/web/src/"
+  }
+}
