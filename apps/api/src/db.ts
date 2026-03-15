@@ -16,6 +16,7 @@ const databasePath = resolve(process.cwd(), "var", "virellio.sqlite");
 mkdirSync(dirname(databasePath), { recursive: true });
 
 const sqlite = new Database(databasePath);
+ensureSchema();
 export const db = drizzle(sqlite, { schema });
 
 export type OrderRecord = typeof schema.orders.$inferSelect;
@@ -35,6 +36,69 @@ export function createPublicOrderId(): string {
   return `VIR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
+function hasColumn(table: string, column: string): boolean {
+  const columns = sqlite
+    .prepare(`PRAGMA table_info(${table})`)
+    .all() as Array<{ name: string }>;
+
+  return columns.some((entry) => entry.name === column);
+}
+
+function ensureColumn(table: string, column: string, definition: string): void {
+  if (!hasColumn(table, column)) {
+    sqlite.exec(`ALTER TABLE ${table} ADD COLUMN ${definition}`);
+  }
+}
+
+function ensureSchema(): void {
+  ensureColumn("orders", "fx_source", "fx_source TEXT NOT NULL DEFAULT 'frankfurter'");
+  ensureColumn("orders", "fx_updated_at", "fx_updated_at TEXT NOT NULL DEFAULT ''");
+  ensureColumn(
+    "order_items",
+    "settlement_unit_price_cents",
+    "settlement_unit_price_cents INTEGER NOT NULL DEFAULT 0",
+  );
+  ensureColumn(
+    "order_items",
+    "settlement_currency",
+    "settlement_currency TEXT NOT NULL DEFAULT 'USD'",
+  );
+  ensureColumn(
+    "order_items",
+    "exchange_rate",
+    "exchange_rate REAL NOT NULL DEFAULT 1",
+  );
+  ensureColumn(
+    "order_items",
+    "exchange_rate_fetched_at",
+    "exchange_rate_fetched_at TEXT NOT NULL DEFAULT ''",
+  );
+
+  sqlite.exec(
+    `UPDATE orders
+     SET fx_updated_at = CASE
+       WHEN fx_updated_at = '' THEN updated_at
+       ELSE fx_updated_at
+     END`,
+  );
+  sqlite.exec(
+    `UPDATE order_items
+     SET settlement_unit_price_cents = unit_price_cents
+     WHERE settlement_unit_price_cents = 0`,
+  );
+  sqlite.exec(
+    `UPDATE order_items
+     SET exchange_rate_fetched_at = '${now()}'
+     WHERE exchange_rate_fetched_at = ''`,
+  );
+  sqlite.exec(
+    `UPDATE order_items
+     SET settlement_currency = currency
+     WHERE exchange_rate = 1
+       AND settlement_unit_price_cents = unit_price_cents`,
+  );
+}
+
 export function createOrder(params: {
   id: string;
   publicOrderId: string;
@@ -42,6 +106,8 @@ export function createOrder(params: {
   status: OrderStatus;
   currency: Currency;
   subtotalCents: number;
+  fxSource: string;
+  fxUpdatedAt: string;
   lastMessage: string;
   items: OrderLineItem[];
 }): OrderBundle {
@@ -56,6 +122,8 @@ export function createOrder(params: {
         status: params.status,
         currency: params.currency,
         subtotalCents: params.subtotalCents,
+        fxSource: params.fxSource,
+        fxUpdatedAt: params.fxUpdatedAt,
         lastMessage: params.lastMessage,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -73,6 +141,10 @@ export function createOrder(params: {
           unitPriceCents: item.unitPriceCents,
           quantity: item.quantity,
           currency: item.currency,
+          settlementUnitPriceCents: item.settlementUnitPriceCents,
+          settlementCurrency: item.settlementCurrency,
+          exchangeRate: item.exchangeRate,
+          exchangeRateFetchedAt: item.exchangeRateFetchedAt,
         })
         .run();
     }
@@ -88,6 +160,8 @@ export function createOrder(params: {
       status: params.status,
       currency: params.currency,
       subtotalCents: params.subtotalCents,
+      fxSource: params.fxSource,
+      fxUpdatedAt: params.fxUpdatedAt,
       lastMessage: params.lastMessage,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -185,6 +259,12 @@ export function getOrderBundle(orderReference: string): OrderBundle | null {
         quantity: row.quantity,
         unitPriceCents: row.unitPriceCents,
         currency: row.currency as Currency,
+        settlementUnitPriceCents:
+          row.settlementUnitPriceCents || row.unitPriceCents,
+        settlementCurrency: (row.settlementCurrency || row.currency) as Currency,
+        exchangeRate: row.exchangeRate || 1,
+        exchangeRateFetchedAt:
+          row.exchangeRateFetchedAt || orderRow.fxUpdatedAt || orderRow.updatedAt,
       }),
     );
 

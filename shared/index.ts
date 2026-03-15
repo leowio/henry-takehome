@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const currencySchema = z.enum(["USD", "EUR", "JPY"]);
 export type Currency = z.infer<typeof currencySchema>;
+export const settlementCurrencySchema = z.literal("USD");
+export type SettlementCurrency = z.infer<typeof settlementCurrencySchema>;
 
 export const productSchema = z.object({
   id: z.number().int().positive(),
@@ -25,6 +27,11 @@ export const createOrderRequestSchema = z.object({
   items: z.array(cartItemInputSchema).min(1),
 });
 export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
+
+export const createOrderQuoteRequestSchema = z.object({
+  items: z.array(cartItemInputSchema).min(1),
+});
+export type CreateOrderQuoteRequest = z.infer<typeof createOrderQuoteRequestSchema>;
 
 export const orderStatusSchema = z.enum([
   "draft",
@@ -60,8 +67,9 @@ export const createOrderResponseSchema = z.object({
   orderId: z.string().uuid(),
   publicOrderId: z.string().min(1),
   amountCents: z.number().int().positive(),
-  currency: currencySchema,
+  currency: settlementCurrencySchema,
   status: orderStatusSchema,
+  fxUpdatedAt: z.string().min(1),
 });
 export type CreateOrderResponse = z.infer<typeof createOrderResponseSchema>;
 
@@ -102,8 +110,20 @@ export const orderLineItemSchema = z.object({
   quantity: z.number().int().positive(),
   unitPriceCents: z.number().int().positive(),
   currency: currencySchema,
+  settlementUnitPriceCents: z.number().int().positive(),
+  settlementCurrency: currencySchema,
+  exchangeRate: z.number().positive(),
+  exchangeRateFetchedAt: z.string().min(1),
 });
 export type OrderLineItem = z.infer<typeof orderLineItemSchema>;
+
+export const orderQuoteResponseSchema = z.object({
+  currency: settlementCurrencySchema,
+  totalCents: z.number().int().positive(),
+  quotedAt: z.string().min(1),
+  items: z.array(orderLineItemSchema),
+});
+export type OrderQuoteResponse = z.infer<typeof orderQuoteResponseSchema>;
 
 export const orderStatusResponseSchema = z.object({
   orderId: z.string().uuid(),
@@ -113,6 +133,7 @@ export const orderStatusResponseSchema = z.object({
   paymentStatus: paymentAttemptStatusSchema.nullable(),
   currency: currencySchema,
   subtotalCents: z.number().int().positive(),
+  fxUpdatedAt: z.string().min(1),
   message: z.string().min(1),
   retryEligible: z.boolean(),
   items: z.array(orderLineItemSchema),
@@ -125,7 +146,19 @@ export function formatMoney(amountCents: number, currency: Currency): string {
     style: "currency",
     currency,
     minimumFractionDigits: currency === "JPY" ? 0 : 2,
-  }).format(amountCents / (currency === "JPY" ? 1 : 100));
+  }).format(amountCents / currencyDivisor(currency));
+}
+
+export function currencyDivisor(currency: Currency): number {
+  return currency === "JPY" ? 1 : 100;
+}
+
+export function toMajorUnits(amountMinor: number, currency: Currency): number {
+  return amountMinor / currencyDivisor(currency);
+}
+
+export function toMinorUnits(amountMajor: number, currency: Currency): number {
+  return Math.round(amountMajor * currencyDivisor(currency));
 }
 
 export function sumLineItems(

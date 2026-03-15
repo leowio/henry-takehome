@@ -12,33 +12,100 @@ type CartDetailItem = Product & { quantity: number };
 
 type CartPanelProps = {
   items: CartDetailItem[];
-  currency?: Product["currency"];
-  total: number;
+  currencies: Product["currency"][];
+  nativeCurrency?: Product["currency"];
+  nativeTotal?: number;
+  estimatedCurrency?: "USD";
+  estimatedTotal?: number;
+  estimatePending: boolean;
+  fxMessage: string;
   email: string;
   pending: boolean;
   checkoutError: string;
   session: OrderSession | null;
   onEmailChange: (email: string) => void;
   onQuantityChange: (productId: number, quantity: number) => void;
+  onRemoveItem: (productId: number) => void;
   onBeginCheckout: () => void;
   onPaymentToken: (paymentToken: string) => void;
+  onDismissPayment: () => void;
   onError: (message: string) => void;
 };
 
+function TrashBinIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M4 7h16"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M9.5 3.5h5a1 1 0 0 1 .94.66L16 6H8l.56-1.84a1 1 0 0 1 .94-.66Z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M7 7l.62 10.52A2 2 0 0 0 9.61 19.4h4.78a2 2 0 0 0 1.99-1.88L17 7"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M10 10.5v5M14 10.5v5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
 export function CartPanel({
   items,
-  currency,
-  total,
+  currencies,
+  nativeCurrency,
+  nativeTotal,
+  estimatedCurrency,
+  estimatedTotal,
+  estimatePending,
+  fxMessage,
   email,
   pending,
   checkoutError,
   session,
   onEmailChange,
   onQuantityChange,
+  onRemoveItem,
   onBeginCheckout,
   onPaymentToken,
+  onDismissPayment,
   onError,
 }: CartPanelProps) {
+  const totalLabel = session
+    ? "Checkout total"
+    : estimatedCurrency && typeof estimatedTotal === "number"
+      ? "Estimated USD total"
+      : nativeCurrency && typeof nativeTotal === "number"
+        ? "Cart total"
+        : "Total";
+  const totalValue = session
+    ? formatMoney(session.amountCents, session.currency)
+    : estimatedCurrency && typeof estimatedTotal === "number"
+      ? formatMoney(estimatedTotal, estimatedCurrency)
+      : nativeCurrency && typeof nativeTotal === "number"
+        ? formatMoney(nativeTotal, nativeCurrency)
+        : estimatePending
+          ? "Loading..."
+          : "Unavailable";
+
   return (
     <div className="space-y-5 lg:sticky lg:top-6 lg:self-start">
       <div>
@@ -51,12 +118,12 @@ export function CartPanel({
               </CardTitle>
             </div>
             <Badge pill variant="primary">
-              Active cart
+              {currencies.length > 1 ? "Mixed currencies" : "Active cart"}
             </Badge>
           </div>
           <CardDescription>
-            The bag stays local until the order and checkout session are
-            created.
+            The bag stays local until checkout starts. Mixed-currency carts are
+            converted to USD using live rates on the server.
           </CardDescription>
         </div>
 
@@ -74,16 +141,28 @@ export function CartPanel({
                       {formatMoney(item.priceCents, item.currency)}
                     </p>
                   </div>
-                  <Input
-                    className="w-24 text-center"
-                    max={10}
-                    min={1}
-                    type="number"
-                    value={item.quantity}
-                    onChange={(event) =>
-                      onQuantityChange(item.id, Number(event.target.value))
-                    }
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      className="w-24 text-center"
+                      disabled={pending}
+                      max={10}
+                      min={1}
+                      type="number"
+                      value={item.quantity}
+                      onChange={(event) =>
+                        onQuantityChange(item.id, Number(event.target.value))
+                      }
+                    />
+                    <Button
+                      aria-label={`Remove ${item.name} from cart`}
+                      size="icon"
+                      variant="plain"
+                      disabled={pending}
+                      onClick={() => onRemoveItem(item.id)}
+                    >
+                      <TrashBinIcon />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -104,12 +183,15 @@ export function CartPanel({
           <div className="border-t border-border/60 pt-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-sm uppercase tracking-[0.18em] text-muted">
-                Total
+                {totalLabel}
               </span>
               <strong className="text-xl text-foreground">
-                {currency ? formatMoney(total, currency) : "$0.00"}
+                {totalValue}
               </strong>
             </div>
+            {fxMessage ? (
+              <p className="mt-3 text-sm leading-6 text-muted">{fxMessage}</p>
+            ) : null}
           </div>
 
           {checkoutError ? (
@@ -133,6 +215,7 @@ export function CartPanel({
         <EmbeddedCardPanel
           checkoutId={session.checkout.checkoutId}
           disabled={pending}
+          onDismiss={onDismissPayment}
           onToken={onPaymentToken}
           onError={onError}
         />

@@ -1,12 +1,10 @@
 import { EmbeddedCheckout } from "@henrylabs-interview/payments";
 import { useEffect, useRef } from "react";
 
-import { CardTitle } from "@/components/selia/card";
-import { SectionKicker } from "./ui/section-kicker";
-
 type EmbeddedCardPanelProps = {
   checkoutId: string;
   disabled: boolean;
+  onDismiss: () => void;
   onToken: (paymentToken: string) => void;
   onError: (message: string) => void;
 };
@@ -14,6 +12,19 @@ type EmbeddedCardPanelProps = {
 export function EmbeddedCardPanel(props: EmbeddedCardPanelProps) {
   const hostId = "embedded-checkout-host";
   const mountedCheckoutId = useRef<string | null>(null);
+
+  useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, []);
 
   useEffect(() => {
     if (mountedCheckoutId.current === props.checkoutId) {
@@ -33,16 +44,22 @@ export function EmbeddedCardPanel(props: EmbeddedCardPanelProps) {
   }, [props]);
 
   return (
-    <div className="border border-border/60 rounded-sm">
-      <div className="border-b border-border/60 p-6">
-        <SectionKicker>Secure card entry</SectionKicker>
-        <CardTitle className="text-lg">Processor-hosted form</CardTitle>
-      </div>
-      <div className="p-6">
+    <div
+      aria-modal="true"
+      role="dialog"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#221b16]/45 px-4 py-6 backdrop-blur-[2px]"
+      onClick={props.onDismiss}
+    >
+      <div
+        className="w-full max-w-[min(92vw,34rem)] overflow-hidden"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div
           id={hostId}
           className={
-            props.disabled ? "min-h-[290px] opacity-70" : "min-h-[290px]"
+            props.disabled
+              ? "min-h-[290px] w-full max-w-full overflow-hidden opacity-70"
+              : "min-h-[290px] w-full max-w-full overflow-hidden"
           }
         />
       </div>

@@ -105,10 +105,17 @@ export function OrderPage() {
     }
   }
 
+  function dismissPendingCheckout() {
+    setPendingCheckout(null);
+    setBusy(false);
+    setError("");
+  }
+
   return (
     <OrderStatusPanel
       busy={busy}
       error={error}
+      onDismissPayment={dismissPendingCheckout}
       onError={setError}
       onRetryCheckout={retryCheckout}
       onRetryPayment={confirmRetry}

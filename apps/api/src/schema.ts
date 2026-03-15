@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 export const orders = sqliteTable("orders", {
   id: text("id").primaryKey(),
@@ -7,6 +7,8 @@ export const orders = sqliteTable("orders", {
   status: text("status").notNull(),
   currency: text("currency").notNull(),
   subtotalCents: integer("subtotal_cents").notNull(),
+  fxSource: text("fx_source").notNull().default("frankfurter"),
+  fxUpdatedAt: text("fx_updated_at").notNull(),
   lastMessage: text("last_message").notNull(),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
@@ -23,6 +25,12 @@ export const orderItems = sqliteTable("order_items", {
   unitPriceCents: integer("unit_price_cents").notNull(),
   quantity: integer("quantity").notNull(),
   currency: text("currency").notNull(),
+  settlementUnitPriceCents: integer("settlement_unit_price_cents")
+    .notNull()
+    .default(0),
+  settlementCurrency: text("settlement_currency").notNull().default("USD"),
+  exchangeRate: real("exchange_rate").notNull().default(1),
+  exchangeRateFetchedAt: text("exchange_rate_fetched_at").notNull().default(""),
 });
 
 export const paymentAttempts = sqliteTable("payment_attempts", {

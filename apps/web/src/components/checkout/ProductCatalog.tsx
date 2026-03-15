@@ -18,8 +18,8 @@ export function ProductCatalog({ products, onAddToCart }: ProductCatalogProps) {
             Signature silhouettes
           </h2>
           <p className="max-w-xl text-sm leading-6 text-muted">
-            Each product card is isolated from checkout state so the shopping
-            path reads cleanly at a glance.
+            Mix currencies freely while browsing. The backend converts the cart
+            to USD when checkout begins.
           </p>
         </div>
       </div>

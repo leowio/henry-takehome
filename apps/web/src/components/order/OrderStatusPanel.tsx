@@ -17,6 +17,7 @@ type OrderStatusPanelProps = {
   busy: boolean;
   pendingCheckout: CreateCheckoutResponse | null;
   onRetryCheckout: () => void;
+  onDismissPayment: () => void;
   onRetryPayment: (paymentToken: string) => void;
   onError: (message: string) => void;
 };
@@ -39,6 +40,7 @@ export function OrderStatusPanel({
   busy,
   pendingCheckout,
   onRetryCheckout,
+  onDismissPayment,
   onRetryPayment,
   onError,
 }: OrderStatusPanelProps) {
@@ -97,10 +99,17 @@ export function OrderStatusPanel({
                 </div>
                 <div className="border-b border-border/60 pb-4">
                   <p className="text-xs uppercase tracking-[0.2em] text-muted">
-                    Total
+                    Settled total
                   </p>
                   <p className="mt-2 text-xl font-semibold text-foreground">
                     {formatMoney(status.subtotalCents, status.currency)}
+                  </p>
+                  <p className="mt-2 text-sm text-muted">
+                    FX snapshot from{" "}
+                    {new Date(status.fxUpdatedAt).toLocaleString("en-US", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
                   </p>
                 </div>
               </div>
@@ -119,13 +128,28 @@ export function OrderStatusPanel({
                         {item.quantity} x{" "}
                         {formatMoney(item.unitPriceCents, item.currency)}
                       </p>
+                      {item.currency !== item.settlementCurrency ? (
+                        <p className="text-xs uppercase tracking-[0.16em] text-muted">
+                          Converted at {item.exchangeRate.toFixed(4)} to{" "}
+                          {item.settlementCurrency}
+                        </p>
+                      ) : null}
                     </div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {formatMoney(
-                        item.quantity * item.unitPriceCents,
-                        item.currency,
-                      )}
-                    </p>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-foreground">
+                        {formatMoney(
+                          item.quantity * item.settlementUnitPriceCents,
+                          item.settlementCurrency,
+                        )}
+                      </p>
+                      <p className="text-xs text-muted">
+                        Native{" "}
+                        {formatMoney(
+                          item.quantity * item.unitPriceCents,
+                          item.currency,
+                        )}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -150,6 +174,7 @@ export function OrderStatusPanel({
             <EmbeddedCardPanel
               checkoutId={pendingCheckout.checkoutId}
               disabled={busy}
+              onDismiss={onDismissPayment}
               onToken={onRetryPayment}
               onError={onError}
             />

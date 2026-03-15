@@ -8,12 +8,10 @@ import { z } from "zod";
 
 import {
   confirmPaymentRequestSchema,
+  createOrderQuoteRequestSchema,
   createOrderRequestSchema,
-  sumLineItems,
-  type CartItemInput,
-  type OrderLineItem,
 } from "../../../shared";
-import { getProductById, getProducts } from "./catalog";
+import { getProducts } from "./catalog";
 import {
   createOrder,
   createPaymentAttempt,
@@ -26,6 +24,11 @@ import {
   mapCheckoutConfirmResponse,
   mapCheckoutCreateResponse,
 } from "./payment";
+import {
+  FxUnavailableError,
+  UnsupportedCurrencyError,
+} from "./fx";
+import { quoteCartItems } from "./quote";
 
 const apiKey = process.env.API_KEY?.replaceAll('"', "").trim();
 
@@ -34,42 +37,6 @@ if (!apiKey) {
 }
 
 const processor = new PaymentProcessor({ apiKey });
-
-function getOrderItems(items: CartItemInput[]): {
-  orderItems: OrderLineItem[];
-  currency: "USD" | "EUR" | "JPY";
-  subtotalCents: number;
-} {
-  const orderItems = items.map((item) => {
-    const product = getProductById(item.productId);
-
-    if (!product) {
-      throw new Error(`Unknown product ${item.productId}`);
-    }
-
-    return {
-      productId: product.id,
-      name: product.name,
-      image: product.image,
-      quantity: item.quantity,
-      unitPriceCents: product.priceCents,
-      currency: product.currency,
-    } satisfies OrderLineItem;
-  });
-
-  const currencies = new Set(orderItems.map((item) => item.currency));
-  if (currencies.size !== 1) {
-    throw new Error(
-      "A checkout can only contain products with the same currency.",
-    );
-  }
-
-  return {
-    orderItems,
-    currency: orderItems[0]!.currency,
-    subtotalCents: sumLineItems(orderItems),
-  };
-}
 
 function toStatusResponse(orderReference: string) {
   const bundle = getOrderBundle(orderReference);
@@ -88,6 +55,7 @@ function toStatusResponse(orderReference: string) {
     paymentStatus: latestAttempt?.status ?? null,
     currency: bundle.order.currency,
     subtotalCents: bundle.order.subtotalCents,
+    fxUpdatedAt: bundle.order.fxUpdatedAt,
     message:
       latestAttempt?.failureMessage ??
       bundle.order.lastMessage ??
@@ -118,12 +86,35 @@ export function createApp() {
     return c.json({ products: getProducts() });
   });
 
+  app.post("/api/orders/quote", async (c) => {
+    try {
+      const payload = createOrderQuoteRequestSchema.parse(await c.req.json());
+      const quote = await quoteCartItems(payload.items);
+
+      return c.json({
+        currency: quote.currency,
+        totalCents: quote.subtotalCents,
+        quotedAt: quote.quotedAt,
+        items: quote.items,
+      });
+    } catch (error) {
+      const message =
+        error instanceof z.ZodError
+          ? "The quote request is invalid."
+          : error instanceof UnsupportedCurrencyError ||
+              error instanceof FxUnavailableError
+            ? error.message
+            : error instanceof Error
+              ? error.message
+              : "Unable to quote the order.";
+      return c.json({ message }, 400);
+    }
+  });
+
   app.post("/api/orders", async (c) => {
     try {
       const payload = createOrderRequestSchema.parse(await c.req.json());
-      const { orderItems, currency, subtotalCents } = getOrderItems(
-        payload.items,
-      );
+      const quote = await quoteCartItems(payload.items);
       const orderId = crypto.randomUUID();
       const publicOrderId = createPublicOrderId();
 
@@ -132,11 +123,13 @@ export function createApp() {
         publicOrderId,
         email: payload.email,
         status: "draft",
-        currency,
-        subtotalCents,
+        currency: quote.currency,
+        subtotalCents: quote.subtotalCents,
+        fxSource: "frankfurter",
+        fxUpdatedAt: quote.quotedAt,
         lastMessage:
           "Order created. Generate a secure checkout session to continue.",
-        items: orderItems,
+        items: quote.items,
       });
 
       return c.json({
@@ -145,11 +138,15 @@ export function createApp() {
         amountCents: bundle.order.subtotalCents,
         currency: bundle.order.currency,
         status: bundle.order.status,
+        fxUpdatedAt: bundle.order.fxUpdatedAt,
       });
     } catch (error) {
       const message =
         error instanceof z.ZodError
           ? "The order request is invalid."
+          : error instanceof UnsupportedCurrencyError ||
+              error instanceof FxUnavailableError
+            ? error.message
           : error instanceof Error
             ? error.message
             : "Unable to create order.";
@@ -198,7 +195,7 @@ export function createApp() {
 
     const providerResponse = await processor.checkout.create({
       amount: bundle.order.subtotalCents,
-      currency: bundle.order.currency,
+      currency: bundle.order.currency as "USD",
       customerId: bundle.order.id.replaceAll("-", ""),
     });
 

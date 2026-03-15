@@ -5,6 +5,7 @@ import {
   type ConfirmPaymentResponse,
   type CreateCheckoutResponse,
   type CreateOrderResponse,
+  type OrderQuoteResponse,
   type OrderStatusResponse,
   type Product,
 } from "../../../../shared";
@@ -45,6 +46,21 @@ export async function createOrder(
   const payload = await response.json();
   if (!response.ok) {
     throw new Error(payload.message || "Failed to create order.");
+  }
+
+  return payload;
+}
+
+export async function quoteOrder(items: CartState): Promise<OrderQuoteResponse> {
+  const response = await fetch(`${API_BASE}/api/orders/quote`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
+
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload.message || "Failed to quote order.");
   }
 
   return payload;
@@ -113,6 +129,10 @@ export function upsertCartItem(cart: CartState, productId: number): CartState {
   }
 
   return [...cart, { productId, quantity: 1 }];
+}
+
+export function removeCartItem(cart: CartState, productId: number): CartState {
+  return cart.filter((item) => item.productId !== productId);
 }
 
 export const cartAtom = atom<CartState>(loadCart());

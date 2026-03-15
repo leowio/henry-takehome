@@ -2,8 +2,22 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+type BunFileLike = {
+  exists(): Promise<boolean>;
+  text(): Promise<string>;
+};
+
+declare global {
+  var Bun:
+    | {
+        file(pathOrUrl: string | URL): BunFileLike;
+        write(pathOrUrl: string | URL, content: string): Promise<void>;
+      }
+    | undefined;
+}
+
 if (typeof globalThis.Bun === "undefined") {
-  (globalThis as any).Bun = {
+  globalThis.Bun = {
     file(pathOrUrl: string | URL) {
       const filePath =
         pathOrUrl instanceof URL
