@@ -51,7 +51,9 @@ export async function createOrder(
   return payload;
 }
 
-export async function quoteOrder(items: CartState): Promise<OrderQuoteResponse> {
+export async function quoteOrder(
+  items: CartState,
+): Promise<OrderQuoteResponse> {
   const response = await fetch(`${API_BASE}/api/orders/quote`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

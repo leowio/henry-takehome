@@ -23,10 +23,10 @@ The API expects `.env` with `API_KEY`. The frontend defaults to `http://127.0.0.
 2. Cart updates stay local in the browser and persist to `localStorage`.
 3. Checkout creates a durable order in SQLite and then requests a secure checkout session from the payment SDK.
 4. Card capture uses `EmbeddedCheckout` in the browser.
-5. Confirmation persists processor outcomes and exposes an order status page with retry support.
+5. Confirmation persists processor outcomes, and deferred outcomes reconcile later through registered payment webhooks.
 
 ## Notes
 
-- The first pass uses polling and stored processor responses. Full webhook-driven reconciliation is not enabled.
-- The catalog mixes `USD`, `EUR`, and `JPY`, so the UI and backend restrict each checkout to a single currency.
+- The frontend polls order status while the backend also reconciles deferred payment outcomes via payment webhooks.
+- The catalog mixes `USD`, `EUR`, and `JPY`, and the backend converts mixed-currency carts into a single USD settlement total at checkout.
 - AI was useful for scaffolding and edge-case coverage, but the SDK surface was verified against the installed package files in `node_modules`.

@@ -29,14 +29,17 @@ export async function quoteCartItems(
 
     return { product, quantity: item.quantity };
   });
-  const uniqueCurrencies = [...new Set(products.map(({ product }) => product.currency))];
+  const uniqueCurrencies = [
+    ...new Set(products.map(({ product }) => product.currency)),
+  ];
   const rateEntries = await Promise.all(
-    uniqueCurrencies.map(async (currency) => [currency, await getUsdRate(currency)]),
+    uniqueCurrencies.map(async (currency) => [
+      currency,
+      await getUsdRate(currency),
+    ]),
   );
   const ratesByCurrency = new Map(
-    rateEntries as Array<
-      [Currency, Awaited<ReturnType<typeof getUsdRate>>]
-    >,
+    rateEntries as Array<[Currency, Awaited<ReturnType<typeof getUsdRate>>]>,
   );
   const quotedItems = await Promise.all(
     products.map(async ({ product, quantity }) => {
@@ -74,7 +77,9 @@ export async function quoteCartItems(
     ),
     quotedAt: quotedItems.reduce(
       (latest, item) =>
-        latest > item.exchangeRateFetchedAt ? latest : item.exchangeRateFetchedAt,
+        latest > item.exchangeRateFetchedAt
+          ? latest
+          : item.exchangeRateFetchedAt,
       quotedItems[0]?.exchangeRateFetchedAt ?? new Date().toISOString(),
     ),
     items: quotedItems,

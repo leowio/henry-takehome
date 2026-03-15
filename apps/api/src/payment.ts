@@ -132,3 +132,77 @@ export function mapCheckoutConfirmResponse(
     failureMessage: response?.message,
   };
 }
+
+export function mapPersistedPaymentState(params: {
+  orderStatus: OrderStatus;
+  paymentStatus: PaymentAttemptStatus;
+  message: string;
+}): ProviderMappedResult {
+  if (
+    params.orderStatus === "confirmed" ||
+    params.paymentStatus === "succeeded"
+  ) {
+    return {
+      displayStatus: "confirmed",
+      orderStatus: "confirmed",
+      paymentStatus: "succeeded",
+      message: params.message,
+      retryEligible: false,
+    };
+  }
+
+  if (params.paymentStatus === "fraud_rejected") {
+    return {
+      displayStatus: "fraud_rejected",
+      orderStatus: "failed",
+      paymentStatus: "fraud_rejected",
+      message: params.message,
+      retryEligible: true,
+    };
+  }
+
+  if (params.orderStatus === "failed" || params.paymentStatus === "failed") {
+    return {
+      displayStatus: "failed",
+      orderStatus: "failed",
+      paymentStatus: params.paymentStatus,
+      message: params.message,
+      retryEligible: true,
+    };
+  }
+
+  if (
+    params.orderStatus === "processing" ||
+    params.paymentStatus === "processing" ||
+    params.paymentStatus === "submitted"
+  ) {
+    return {
+      displayStatus: "processing",
+      orderStatus: "processing",
+      paymentStatus:
+        params.paymentStatus === "submitted"
+          ? "processing"
+          : params.paymentStatus,
+      message: params.message,
+      retryEligible: false,
+    };
+  }
+
+  if (params.paymentStatus === "checkout_ready") {
+    return {
+      displayStatus: "ready",
+      orderStatus: "payment_pending",
+      paymentStatus: "checkout_ready",
+      message: params.message,
+      retryEligible: false,
+    };
+  }
+
+  return {
+    displayStatus: "failed",
+    orderStatus: "failed",
+    paymentStatus: "failed",
+    message: params.message,
+    retryEligible: true,
+  };
+}

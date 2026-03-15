@@ -3,6 +3,7 @@ import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 export const orders = sqliteTable("orders", {
   id: text("id").primaryKey(),
   publicOrderId: text("public_order_id").notNull().unique(),
+  providerCustomerId: text("provider_customer_id").notNull().unique(),
   email: text("email").notNull(),
   status: text("status").notNull(),
   currency: text("currency").notNull(),
@@ -40,6 +41,7 @@ export const paymentAttempts = sqliteTable("payment_attempts", {
     .references(() => orders.id),
   providerCheckoutId: text("provider_checkout_id"),
   providerConfirmationId: text("provider_confirmation_id"),
+  providerRequestId: text("provider_request_id"),
   status: text("status").notNull(),
   failureCode: text("failure_code"),
   failureMessage: text("failure_message"),
@@ -47,4 +49,17 @@ export const paymentAttempts = sqliteTable("payment_attempts", {
   providerPayload: text("provider_payload"),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
+});
+
+export const webhookEvents = sqliteTable("webhook_events", {
+  uid: text("uid").primaryKey(),
+  eventType: text("event_type").notNull(),
+  signature: text("signature"),
+  payload: text("payload").notNull(),
+  processingStatus: text("processing_status").notNull(),
+  relatedOrderId: text("related_order_id"),
+  relatedAttemptId: text("related_attempt_id"),
+  errorMessage: text("error_message"),
+  createdAt: text("created_at").notNull(),
+  processedAt: text("processed_at"),
 });

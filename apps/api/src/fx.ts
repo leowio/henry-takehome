@@ -1,6 +1,7 @@
 import { type Currency, toMajorUnits, toMinorUnits } from "../../../shared";
 
-const FX_BASE_URL = process.env.FX_API_BASE_URL || "https://api.frankfurter.app";
+const FX_BASE_URL =
+  process.env.FX_API_BASE_URL || "https://api.frankfurter.app";
 const FX_CACHE_TTL_MS = 5 * 60 * 1000;
 
 type FxRateSnapshot = {
@@ -21,13 +22,13 @@ export class FxUnavailableError extends Error {}
 
 export class UnsupportedCurrencyError extends Error {
   constructor(currency: string) {
-    super(`We can't process items priced in ${currency} right now. Remove that item or try again later.`);
+    super(
+      `We can't process items priced in ${currency} right now. Remove that item or try again later.`,
+    );
   }
 }
 
-export async function getUsdRate(
-  currency: Currency,
-): Promise<FxRateSnapshot> {
+export async function getUsdRate(currency: Currency): Promise<FxRateSnapshot> {
   const fetchedAt = new Date().toISOString();
   if (currency === "USD") {
     return {

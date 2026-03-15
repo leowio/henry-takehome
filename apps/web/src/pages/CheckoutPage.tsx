@@ -70,7 +70,8 @@ export function CheckoutPage() {
     return {
       items: detailed,
       currencies,
-      nativeCurrency: currencies.length === 1 ? detailed[0]?.currency : undefined,
+      nativeCurrency:
+        currencies.length === 1 ? detailed[0]?.currency : undefined,
       nativeTotal:
         currencies.length === 1
           ? detailed.reduce(

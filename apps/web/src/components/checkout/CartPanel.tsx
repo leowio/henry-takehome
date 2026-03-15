@@ -185,9 +185,7 @@ export function CartPanel({
               <span className="text-sm uppercase tracking-[0.18em] text-muted">
                 {totalLabel}
               </span>
-              <strong className="text-xl text-foreground">
-                {totalValue}
-              </strong>
+              <strong className="text-xl text-foreground">{totalValue}</strong>
             </div>
             {fxMessage ? (
               <p className="mt-3 text-sm leading-6 text-muted">{fxMessage}</p>

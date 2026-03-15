@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 
 import {
+  mapPersistedPaymentState,
   mapCheckoutConfirmResponse,
   mapCheckoutCreateResponse,
 } from "../apps/api/src/payment";
@@ -40,4 +41,16 @@ test("maps deferred confirmations to processing", () => {
 
   expect(mapped.displayStatus).toBe("processing");
   expect(mapped.paymentStatus).toBe("processing");
+});
+
+test("prefers persisted terminal success over a stale deferred response", () => {
+  const mapped = mapPersistedPaymentState({
+    orderStatus: "confirmed",
+    paymentStatus: "succeeded",
+    message: "Payment confirmed.",
+  });
+
+  expect(mapped.displayStatus).toBe("confirmed");
+  expect(mapped.orderStatus).toBe("confirmed");
+  expect(mapped.retryEligible).toBe(false);
 });

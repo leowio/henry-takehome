@@ -31,7 +31,9 @@ export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
 export const createOrderQuoteRequestSchema = z.object({
   items: z.array(cartItemInputSchema).min(1),
 });
-export type CreateOrderQuoteRequest = z.infer<typeof createOrderQuoteRequestSchema>;
+export type CreateOrderQuoteRequest = z.infer<
+  typeof createOrderQuoteRequestSchema
+>;
 
 export const orderStatusSchema = z.enum([
   "draft",
