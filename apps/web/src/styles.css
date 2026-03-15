@@ -40,8 +40,7 @@
   --info: #2a65a8;
   --info-border: #25588f;
 
-  --shadow-card:
-    0 18px 44px rgba(73, 49, 30, 0.08), 0 6px 18px rgba(73, 49, 30, 0.05);
+  --shadow-card: 0 1px 2px rgba(73, 49, 30, 0.04);
   --shadow-input: 0 2px 6px rgba(31, 23, 18, 0.06);
   --spinner-light: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23clip0)'%3E%3Cpath d='M22 12.0005C21.9999 14.1123 21.3313 16.1698 20.0899 17.8782C18.8486 19.5866 17.0983 20.8582 15.0899 21.5107C13.0814 22.1632 10.918 22.1631 8.9096 21.5105C6.90121 20.8579 5.15098 19.5862 3.90974 17.8777C2.6685 16.1693 1.99998 14.1117 2 11.9999C2.00002 9.88816 2.66856 7.83061 3.90982 6.12216C5.15109 4.4137 6.90134 3.14205 8.90974 2.48946C10.9181 1.83687 13.0816 1.83684 15.09 2.48938' stroke='%23F7F7F8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
   --spinner-dark: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23clip0)'%3E%3Cpath d='M22 12.0005C21.9999 14.1123 21.3313 16.1698 20.0899 17.8782C18.8486 19.5866 17.0983 20.8582 15.0899 21.5107C13.0814 22.1632 10.918 22.1631 8.9096 21.5105C6.90121 20.8579 5.15098 19.5862 3.90974 17.8777C2.6685 16.1693 1.99998 14.1117 2 11.9999C2.00002 9.88816 2.66856 7.83061 3.90982 6.12216C5.15109 4.4137 6.90134 3.14205 8.90974 2.48946C10.9181 1.83687 13.0816 1.83684 15.09 2.48938' stroke='%23221B16' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E");
@@ -115,18 +114,7 @@
 
   body {
     margin: 0;
-    background:
-      radial-gradient(
-        circle at top left,
-        rgba(197, 122, 77, 0.26),
-        transparent 24%
-      ),
-      radial-gradient(
-        circle at right 10%,
-        rgba(60, 43, 30, 0.1),
-        transparent 20%
-      ),
-      linear-gradient(180deg, #fbf6ef 0%, #f2e9df 100%);
+    background: #f5efe7;
     color: var(--foreground);
     font-family: var(--font-sans-ui);
     text-rendering: optimizeLegibility;

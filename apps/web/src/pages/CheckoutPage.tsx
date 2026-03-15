@@ -154,34 +154,38 @@ export function CheckoutPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1320px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-      <CheckoutHero
-        currency={cartDetails.currency}
-        itemCount={cartDetails.items.length}
-        total={cartDetails.total}
-      />
+      <CheckoutHero />
 
       {catalogError ? (
-        <div className="rounded-3xl border border-danger/15 bg-white/90 px-5 py-4 text-sm leading-6 text-danger">
+        <p className="border-l-2 border-danger pl-4 text-sm leading-6 text-danger">
           {catalogError}
-        </div>
+        </p>
       ) : null}
 
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_24rem]">
+      <section
+        className={
+          cartDetails.items.length
+            ? "grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_24rem]"
+            : ""
+        }
+      >
         <ProductCatalog products={products} onAddToCart={addToCart} />
-        <CartPanel
-          checkoutError={checkoutError}
-          currency={cartDetails.currency}
-          email={email}
-          items={cartDetails.items}
-          onBeginCheckout={beginCheckout}
-          onEmailChange={setEmail}
-          onError={setCheckoutError}
-          onPaymentToken={handleToken}
-          onQuantityChange={updateQuantity}
-          pending={pending}
-          session={session}
-          total={cartDetails.total}
-        />
+        {cartDetails.items.length ? (
+          <CartPanel
+            checkoutError={checkoutError}
+            currency={cartDetails.currency}
+            email={email}
+            items={cartDetails.items}
+            onBeginCheckout={beginCheckout}
+            onEmailChange={setEmail}
+            onError={setCheckoutError}
+            onPaymentToken={handleToken}
+            onQuantityChange={updateQuantity}
+            pending={pending}
+            session={session}
+            total={cartDetails.total}
+          />
+        ) : null}
       </section>
     </main>
   );

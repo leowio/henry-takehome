@@ -3,14 +3,7 @@ import { formatMoney, type Product } from "../../../../../shared";
 import type { OrderSession } from "../../lib/checkout";
 import { Badge } from "@/components/selia/badge";
 import { Button } from "@/components/selia/button";
-import {
-  Card,
-  CardBody,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/selia/card";
+import { CardDescription, CardTitle } from "@/components/selia/card";
 import { Input } from "@/components/selia/input";
 import { EmbeddedCardPanel } from "../EmbeddedCardPanel";
 import { SectionKicker } from "../ui/section-kicker";
@@ -47,63 +40,53 @@ export function CartPanel({
   onError,
 }: CartPanelProps) {
   return (
-    <div className="space-y-5 lg:sticky lg:top-6">
-      <Card className="overflow-hidden border-white/60 bg-white/88">
-        <CardHeader className="space-y-3 border-b border-card-border/70 bg-card/80">
+    <div className="space-y-5 lg:sticky lg:top-6 lg:self-start">
+      <div>
+        <div className="space-y-3 border-b border-border/60 pb-6">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-2">
               <SectionKicker>Checkout</SectionKicker>
               <CardTitle>
-                {items.length
-                  ? `${items.length} items ready`
-                  : "Start your bag"}
+                {items.length} {items.length === 1 ? "item" : "items"} ready
               </CardTitle>
             </div>
-            <Badge pill variant={items.length ? "primary" : "secondary"}>
-              {items.length ? "Active cart" : "Empty cart"}
+            <Badge pill variant="primary">
+              Active cart
             </Badge>
           </div>
           <CardDescription>
             The bag stays local until the order and checkout session are
             created.
           </CardDescription>
-        </CardHeader>
+        </div>
 
-        <CardBody className="space-y-6">
-          <div className="space-y-3">
-            {items.length ? (
-              items.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-3xl border border-border/80 bg-white/80 p-4"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                      <p className="font-semibold text-foreground">
-                        {item.name}
-                      </p>
-                      <p className="text-sm text-muted">
-                        {formatMoney(item.priceCents, item.currency)}
-                      </p>
-                    </div>
-                    <Input
-                      className="w-24 text-center"
-                      max={10}
-                      min={1}
-                      type="number"
-                      value={item.quantity}
-                      onChange={(event) =>
-                        onQuantityChange(item.id, Number(event.target.value))
-                      }
-                    />
+        <div className="space-y-6 py-6">
+          <div className="space-y-0">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="border-b border-border/40 py-4 first:pt-0 last:border-b-0"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="font-semibold text-foreground">{item.name}</p>
+                    <p className="text-sm text-muted">
+                      {formatMoney(item.priceCents, item.currency)}
+                    </p>
                   </div>
+                  <Input
+                    className="w-24 text-center"
+                    max={10}
+                    min={1}
+                    type="number"
+                    value={item.quantity}
+                    onChange={(event) =>
+                      onQuantityChange(item.id, Number(event.target.value))
+                    }
+                  />
                 </div>
-              ))
-            ) : (
-              <div className="rounded-3xl border border-dashed border-border bg-accent/60 px-4 py-5 text-sm leading-6 text-muted">
-                The cart lives locally until checkout starts.
               </div>
-            )}
+            ))}
           </div>
 
           <label className="block space-y-2">
@@ -118,33 +101,33 @@ export function CartPanel({
             />
           </label>
 
-          <div className="rounded-3xl border border-stone-900 bg-stone-950 px-5 py-4 text-stone-50">
+          <div className="border-t border-border/60 pt-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm uppercase tracking-[0.18em] text-stone-400">
+              <span className="text-sm uppercase tracking-[0.18em] text-muted">
                 Total
               </span>
-              <strong className="text-xl">
+              <strong className="text-xl text-foreground">
                 {currency ? formatMoney(total, currency) : "$0.00"}
               </strong>
             </div>
           </div>
 
           {checkoutError ? (
-            <p className="rounded-2xl border border-primary/15 bg-primary/8 px-4 py-3 text-sm leading-6 text-primary">
+            <p className="border-l-2 border-primary pl-4 text-sm leading-6 text-primary">
               {checkoutError}
             </p>
           ) : null}
-        </CardBody>
+        </div>
 
-        <CardFooter className="block space-y-4 bg-card-footer/70">
+        <div className="space-y-4 border-t border-border/60 pt-6">
           <Button block size="lg" disabled={pending} onClick={onBeginCheckout}>
             {pending ? "Starting checkout..." : "Start secure checkout"}
           </Button>
           <p className="text-xs leading-5 text-muted">
             Card data remains in the hosted form. The app only receives a token.
           </p>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
 
       {session?.checkout?.checkoutId ? (
         <EmbeddedCardPanel

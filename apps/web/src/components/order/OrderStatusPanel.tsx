@@ -7,13 +7,7 @@ import {
 } from "../../../../../shared";
 import { Badge } from "@/components/selia/badge";
 import { Button } from "@/components/selia/button";
-import {
-  Card,
-  CardBody,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/selia/card";
+import { CardDescription, CardTitle } from "@/components/selia/card";
 import { EmbeddedCardPanel } from "../EmbeddedCardPanel";
 import { SectionKicker } from "../ui/section-kicker";
 
@@ -65,8 +59,8 @@ export function OrderStatusPanel({
       </div>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_24rem]">
-        <Card className="overflow-hidden border-white/60 bg-white/86">
-          <CardHeader className="space-y-3 bg-card/80">
+        <div>
+          <div className="space-y-3 border-b border-border/60 pb-6">
             <SectionKicker>Order status</SectionKicker>
             {status ? (
               <>
@@ -88,12 +82,12 @@ export function OrderStatusPanel({
                 </CardDescription>
               </>
             )}
-          </CardHeader>
+          </div>
 
           {status ? (
-            <CardBody className="space-y-6">
+            <div className="space-y-6 py-6">
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl border border-border bg-accent/70 p-5">
+                <div className="border-b border-border/60 pb-4">
                   <p className="text-xs uppercase tracking-[0.2em] text-muted">
                     Status
                   </p>
@@ -101,7 +95,7 @@ export function OrderStatusPanel({
                     {status.status}
                   </p>
                 </div>
-                <div className="rounded-3xl border border-border bg-accent/70 p-5">
+                <div className="border-b border-border/60 pb-4">
                   <p className="text-xs uppercase tracking-[0.2em] text-muted">
                     Total
                   </p>
@@ -111,11 +105,11 @@ export function OrderStatusPanel({
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-0">
                 {status.items.map((item) => (
                   <div
                     key={`${item.productId}-${item.name}`}
-                    className="flex items-center justify-between gap-3 rounded-3xl border border-border bg-white/78 px-4 py-4"
+                    className="flex items-center justify-between gap-3 border-b border-border/40 py-4 last:border-b-0"
                   >
                     <div>
                       <p className="font-semibold text-foreground">
@@ -141,15 +135,15 @@ export function OrderStatusPanel({
                   {busy ? "Preparing retry..." : "Retry payment"}
                 </Button>
               ) : null}
-            </CardBody>
+            </div>
           ) : null}
-        </Card>
+        </div>
 
         <div className="space-y-5">
           {error ? (
-            <Card className="border-danger/15 bg-white/90">
-              <div className="p-5 text-sm leading-6 text-danger">{error}</div>
-            </Card>
+            <p className="border-l-2 border-danger pl-4 text-sm leading-6 text-danger">
+              {error}
+            </p>
           ) : null}
 
           {pendingCheckout?.checkoutId ? (
@@ -160,18 +154,16 @@ export function OrderStatusPanel({
               onError={onError}
             />
           ) : (
-            <Card className="border-white/60 bg-white/82">
-              <div className="space-y-3 p-6">
-                <SectionKicker>Recovery path</SectionKicker>
-                <h2 className="text-xl font-semibold text-foreground">
-                  Retry checkout appears here when needed.
-                </h2>
-                <p className="text-sm leading-6 text-muted">
-                  Failed orders can create another hosted checkout without
-                  forcing the shopper back through the catalog.
-                </p>
-              </div>
-            </Card>
+            <div className="space-y-3">
+              <SectionKicker>Recovery path</SectionKicker>
+              <h2 className="text-xl font-semibold text-foreground">
+                Retry checkout appears here when needed.
+              </h2>
+              <p className="text-sm leading-6 text-muted">
+                Failed orders can create another hosted checkout without forcing
+                the shopper back through the catalog.
+              </p>
+            </div>
           )}
         </div>
       </section>

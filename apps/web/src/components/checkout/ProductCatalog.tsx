@@ -1,7 +1,6 @@
 import { formatMoney, type Product } from "../../../../../shared";
 
 import { Button } from "@/components/selia/button";
-import { Card } from "@/components/selia/card";
 import { SectionKicker } from "../ui/section-kicker";
 
 type ProductCatalogProps = {
@@ -27,12 +26,11 @@ export function ProductCatalog({ products, onAddToCart }: ProductCatalogProps) {
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {products.map((product) => (
-          <Card
+          <div
             key={product.id}
-            className="group overflow-hidden border-white/60 bg-white/78"
+            className="group border-b border-border/60 pb-5"
           >
-            <div className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-stone-950/8" />
+            <div className="overflow-hidden rounded-sm">
               <img
                 src={product.image}
                 alt={product.name}
@@ -40,7 +38,7 @@ export function ProductCatalog({ products, onAddToCart }: ProductCatalogProps) {
               />
             </div>
 
-            <div className="space-y-5 p-6">
+            <div className="space-y-5 pt-5">
               <div className="space-y-2">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                   {formatMoney(product.priceCents, product.currency)}
@@ -57,7 +55,7 @@ export function ProductCatalog({ products, onAddToCart }: ProductCatalogProps) {
                 Add to cart
               </Button>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
     </section>

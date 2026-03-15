@@ -29,7 +29,7 @@ export const badgeVariants = cva(
         lg: "px-2 h-6 rounded-sm [&_svg:not([class*=size-])]:size-4",
       },
       pill: {
-        true: "rounded-full",
+        true: "rounded-sm",
       },
     },
     defaultVariants: {

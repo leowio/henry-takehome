@@ -1,7 +1,7 @@
 import { EmbeddedCheckout } from "@henrylabs-interview/payments";
 import { useEffect, useRef } from "react";
 
-import { Card, CardBody, CardHeader, CardTitle } from "@/components/selia/card";
+import { CardTitle } from "@/components/selia/card";
 import { SectionKicker } from "./ui/section-kicker";
 
 type EmbeddedCardPanelProps = {
@@ -33,19 +33,19 @@ export function EmbeddedCardPanel(props: EmbeddedCardPanelProps) {
   }, [props]);
 
   return (
-    <Card className="overflow-hidden bg-white/92">
-      <CardHeader className="border-b border-card-border/70 bg-card/80">
+    <div className="border border-border/60 rounded-sm">
+      <div className="border-b border-border/60 p-6">
         <SectionKicker>Secure card entry</SectionKicker>
         <CardTitle className="text-lg">Processor-hosted form</CardTitle>
-      </CardHeader>
-      <CardBody>
+      </div>
+      <div className="p-6">
         <div
           id={hostId}
           className={
             props.disabled ? "min-h-[290px] opacity-70" : "min-h-[290px]"
           }
         />
-      </CardBody>
-    </Card>
+      </div>
+    </div>
   );
 }
