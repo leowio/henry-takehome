@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { formatMoney, type Product } from "../../../../shared";
@@ -9,17 +9,13 @@ import { CheckoutHero } from "../components/checkout/CheckoutHero";
 import { ProductCatalog } from "../components/checkout/ProductCatalog";
 import {
   cartAtom,
-  checkoutErrorAtom,
   confirmPayment,
   createCheckout,
   createOrder,
-  emailAtom,
   getProducts,
-  pendingAtom,
-  persistCart,
+  type OrderSession,
   quoteOrder,
   removeCartItem,
-  sessionAtom,
   upsertCartItem,
 } from "../lib/checkout";
 
@@ -31,31 +27,13 @@ export function CheckoutPage() {
     retry: false,
   });
   const [cart, setCart] = useAtom(cartAtom);
-  const [email, setEmail] = useAtom(emailAtom);
-  const [checkoutError, setCheckoutError] = useAtom(checkoutErrorAtom);
-  const [pending, setPending] = useAtom(pendingAtom);
-  const [session, setSession] = useAtom(sessionAtom);
+  const [email, setEmail] = useState("");
+  const [checkoutError, setCheckoutError] = useState("");
+  const [pending, setPending] = useState(false);
+  const [session, setSession] = useState<OrderSession | null>(null);
   const catalogError = productsError
     ? "Unable to load the catalog right now."
     : "";
-
-  useEffect(() => {
-    setEmail("");
-    setCheckoutError("");
-    setPending(false);
-    setSession(null);
-
-    return () => {
-      setEmail("");
-      setCheckoutError("");
-      setPending(false);
-      setSession(null);
-    };
-  }, [setCheckoutError, setEmail, setPending, setSession]);
-
-  useEffect(() => {
-    persistCart(cart);
-  }, [cart]);
 
   const cartDetails = useMemo(() => {
     const detailed = cart
@@ -168,7 +146,6 @@ export function CheckoutPage() {
 
       if (result.status === "confirmed" || result.status === "processing") {
         setCart([]);
-        persistCart([]);
         navigate(`/order/${result.publicOrderId}`);
         return;
       }

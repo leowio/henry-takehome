@@ -1,26 +1,22 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAtom } from "jotai";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+import type { CreateCheckoutResponse } from "../../../../shared";
 import { OrderStatusPanel } from "../components/order/OrderStatusPanel";
 import {
   confirmPayment,
   createCheckout,
   fetchOrderStatus,
-  orderBusyAtom,
-  orderErrorAtom,
-  orderStatusAtom,
-  pendingCheckoutAtom,
 } from "../lib/checkout";
 
 export function OrderPage() {
   const { publicOrderId = "" } = useParams();
   const queryClient = useQueryClient();
-  const [status, setStatus] = useAtom(orderStatusAtom);
-  const [error, setError] = useAtom(orderErrorAtom);
-  const [pendingCheckout, setPendingCheckout] = useAtom(pendingCheckoutAtom);
-  const [busy, setBusy] = useAtom(orderBusyAtom);
+  const [error, setError] = useState("");
+  const [pendingCheckout, setPendingCheckout] =
+    useState<CreateCheckoutResponse | null>(null);
+  const [busy, setBusy] = useState(false);
   const orderStatusQuery = useQuery({
     queryKey: ["order-status", publicOrderId],
     queryFn: () => fetchOrderStatus(publicOrderId),
@@ -29,27 +25,19 @@ export function OrderPage() {
     refetchInterval: (query) =>
       query.state.data?.status === "processing" ? 2500 : false,
   });
+  const status = orderStatusQuery.data ?? null;
 
   useEffect(() => {
-    setStatus(null);
     setError("");
     setPendingCheckout(null);
     setBusy(false);
-
-    return () => {
-      setStatus(null);
-      setError("");
-      setPendingCheckout(null);
-      setBusy(false);
-    };
-  }, [publicOrderId, setBusy, setError, setPendingCheckout, setStatus]);
+  }, [publicOrderId]);
 
   useEffect(() => {
-    if (orderStatusQuery.data) {
-      setStatus(orderStatusQuery.data);
+    if (status) {
       setError("");
     }
-  }, [orderStatusQuery.data, setError, setStatus]);
+  }, [status]);
 
   useEffect(() => {
     if (orderStatusQuery.error) {
@@ -59,7 +47,7 @@ export function OrderPage() {
           : "Unable to load the order.",
       );
     }
-  }, [orderStatusQuery.error, setError]);
+  }, [orderStatusQuery.error]);
 
   async function retryCheckout() {
     if (!status) {
@@ -92,7 +80,6 @@ export function OrderPage() {
       const result = await confirmPayment(status.orderId, paymentToken);
       setError(result.message);
       const next = await fetchOrderStatus(status.publicOrderId);
-      setStatus(next);
       queryClient.setQueryData(["order-status", status.publicOrderId], next);
     } catch (nextError) {
       setError(

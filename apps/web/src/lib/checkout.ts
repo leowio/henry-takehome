@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 
 import {
   type CartItemInput,
@@ -18,14 +18,7 @@ export type OrderSession = CreateOrderResponse & {
   checkout?: CreateCheckoutResponse;
 };
 
-function loadCart(): CartState {
-  try {
-    const raw = window.localStorage.getItem(CART_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
+export const cartAtom = atomWithStorage<CartState>(CART_KEY, []);
 
 export async function getProducts(): Promise<Product[]> {
   const response = await fetch(`${API_BASE}/api/products`);
@@ -116,10 +109,6 @@ export async function fetchOrderStatus(
   return payload;
 }
 
-export function persistCart(cart: CartState) {
-  window.localStorage.setItem(CART_KEY, JSON.stringify(cart));
-}
-
 export function upsertCartItem(cart: CartState, productId: number): CartState {
   const existing = cart.find((item) => item.productId === productId);
   if (existing) {
@@ -136,13 +125,3 @@ export function upsertCartItem(cart: CartState, productId: number): CartState {
 export function removeCartItem(cart: CartState, productId: number): CartState {
   return cart.filter((item) => item.productId !== productId);
 }
-
-export const cartAtom = atom<CartState>(loadCart());
-export const emailAtom = atom("");
-export const checkoutErrorAtom = atom("");
-export const pendingAtom = atom(false);
-export const sessionAtom = atom<OrderSession | null>(null);
-export const orderStatusAtom = atom<OrderStatusResponse | null>(null);
-export const orderErrorAtom = atom("");
-export const pendingCheckoutAtom = atom<CreateCheckoutResponse | null>(null);
-export const orderBusyAtom = atom(false);

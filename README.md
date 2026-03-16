@@ -1,4 +1,4 @@
-# Virellio Payments Assessment
+# Virellio Payments
 
 This repository implements a small end-to-end checkout system for a fictional
 storefront called Virellio. It combines a React single-page application with a
