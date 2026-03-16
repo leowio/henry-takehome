@@ -28,7 +28,7 @@ export function ProductCatalog({ products, onAddToCart }: ProductCatalogProps) {
         {products.map((product) => (
           <div
             key={product.id}
-            className="group border-b border-border/60 pb-5"
+            className="group flex h-full flex-col border-b border-border/60 pb-5"
           >
             <div className="overflow-hidden rounded-sm">
               <img
@@ -38,7 +38,7 @@ export function ProductCatalog({ products, onAddToCart }: ProductCatalogProps) {
               />
             </div>
 
-            <div className="space-y-5 pt-5">
+            <div className="flex flex-1 flex-col gap-5 pt-5">
               <div className="space-y-2">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                   {formatMoney(product.priceCents, product.currency)}
@@ -51,7 +51,7 @@ export function ProductCatalog({ products, onAddToCart }: ProductCatalogProps) {
                 </p>
               </div>
 
-              <Button block onClick={() => onAddToCart(product)}>
+              <Button block className="mt-auto" onClick={() => onAddToCart(product)}>
                 Add to cart
               </Button>
             </div>
