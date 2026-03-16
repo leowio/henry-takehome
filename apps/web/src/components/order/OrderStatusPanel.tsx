@@ -70,8 +70,8 @@ export function OrderStatusPanel({
                   {status.message}
                 </CardTitle>
                 <CardDescription>
-                  Order {status.publicOrderId} is tracked server-side and polled
-                  while the payment is still processing.
+                  Order {status.publicOrderId} is being updated with the latest
+                  payment status.
                 </CardDescription>
               </>
             ) : (
